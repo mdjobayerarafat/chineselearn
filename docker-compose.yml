@@ -18,7 +18,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://20.220.172.139/api
+        NEXT_PUBLIC_API_URL: /api
+        INTERNAL_API_URL: http://backend:8080/api
     container_name: chineselearn-frontend
     ports:
       - "3000:3000"

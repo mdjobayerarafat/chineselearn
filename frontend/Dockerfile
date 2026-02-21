@@ -25,6 +25,8 @@ COPY . .
 # If using npm
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ARG INTERNAL_API_URL
+ENV INTERNAL_API_URL=${INTERNAL_API_URL}
 RUN npm run build
 
 # Production image, copy all the files and run next
