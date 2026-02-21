@@ -230,6 +230,12 @@ export default function AdminChapterDetail({ params }: AdminChapterDetailProps) 
       // Ensure it's an array
       const dataToImport = Array.isArray(parsedData) ? parsedData : [parsedData];
       
+      if (dataToImport.length === 0) {
+        alert("The JSON array is empty. Please provide at least one vocabulary item.");
+        setImporting(false);
+        return;
+      }
+
       await api.post(`/chapters/${id}/vocabularies/batch`, dataToImport);
       
       // Refresh list
@@ -240,9 +246,10 @@ export default function AdminChapterDetail({ params }: AdminChapterDetailProps) 
       setJsonInput("");
       setIsImportModalOpen(false);
       alert("Import successful!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to import JSON", error);
-      alert("Failed to import: " + (error instanceof Error ? error.message : "Invalid JSON or server error"));
+      const errorMessage = error.response?.data?.error || error.message || "Invalid JSON or server error";
+      alert("Failed to import: " + errorMessage);
     } finally {
       setImporting(false);
     }
@@ -624,6 +631,9 @@ export default function AdminChapterDetail({ params }: AdminChapterDetailProps) 
                       className="w-full h-64 px-4 py-3 bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:text-white font-mono text-sm resize-none"
                       placeholder="Paste JSON array here..."
                     />
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Expected format: <code className="bg-gray-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono">[{`{"chinese": "word", "pinyin": "pinyin", "meaning": "meaning"}`}]</code>
+                    </p>
                   </div>
                 </div>
               </div>
