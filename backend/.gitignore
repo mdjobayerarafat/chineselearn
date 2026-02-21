@@ -1,0 +1,7 @@
+# Ignore binary
+main
+main.exe
+
+# Ignore uploads content but keep directory
+uploads/*
+!uploads/.gitkeep
