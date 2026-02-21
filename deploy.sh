@@ -11,6 +11,8 @@ git pull origin main
 
 # Build and restart containers
 echo "Building and restarting containers..."
+# Clean up old containers/images first
+docker-compose down --rmi all --remove-orphans
 # Use --build to ensure images are updated
 docker-compose up -d --build
 
