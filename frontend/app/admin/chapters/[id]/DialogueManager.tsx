@@ -282,7 +282,7 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
                                 type="text"
                                 value={sentenceSpeaker}
                                 onChange={(e) => setSentenceSpeaker(e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm"
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-900 dark:text-white"
                                 placeholder="A"
                               />
                             </div>
@@ -292,7 +292,7 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
                                 type="number"
                                 value={sentenceOrder}
                                 onChange={(e) => setSentenceOrder(Number(e.target.value))}
-                                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm"
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-900 dark:text-white"
                               />
                             </div>
                           </div>
@@ -303,7 +303,7 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
                               type="text"
                               value={sentenceChinese}
                               onChange={(e) => setSentenceChinese(e.target.value)}
-                              className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm"
+                              className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-900 dark:text-white"
                               placeholder="你好"
                               required
                             />
@@ -316,7 +316,7 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
                                 type="text"
                                 value={sentencePinyin}
                                 onChange={(e) => setSentencePinyin(e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm"
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-900 dark:text-white"
                                 placeholder="nǐ hǎo"
                               />
                             </div>
@@ -326,7 +326,7 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
                                 type="text"
                                 value={sentenceEnglish}
                                 onChange={(e) => setSentenceEnglish(e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm"
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-900 dark:text-white"
                                 placeholder="Hello"
                               />
                             </div>
@@ -384,7 +384,7 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
                   type="text"
                   value={dialogueTitle}
                   onChange={(e) => setDialogueTitle(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"
                   placeholder="e.g. Ordering Coffee"
                   required
                 />
@@ -395,7 +395,7 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
                 <textarea
                   value={dialogueDescription}
                   onChange={(e) => setDialogueDescription(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none text-gray-900 dark:text-white"
                   placeholder="Optional description..."
                 />
               </div>
