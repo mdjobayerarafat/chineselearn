@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { Dialogue, Sentence } from "@/lib/types";
-import { Plus, Edit, Trash2, Save, X, ChevronDown, ChevronUp, MessageSquare, Play, Mic } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, ChevronDown, ChevronUp, MessageSquare, Play, Mic, Upload, FileJson, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface DialogueManagerProps {
@@ -19,6 +19,11 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
   const [editingDialogue, setEditingDialogue] = useState<Dialogue | null>(null);
   const [dialogueTitle, setDialogueTitle] = useState("");
   const [dialogueDescription, setDialogueDescription] = useState("");
+
+  // JSON Import State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [jsonInput, setJsonInput] = useState("");
+  const [importing, setImporting] = useState(false);
 
   // Sentence Form State
   const [activeDialogueId, setActiveDialogueId] = useState<number | null>(null);
@@ -95,6 +100,39 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
     setEditingDialogue(null);
     setDialogueTitle("");
     setDialogueDescription("");
+  };
+
+  const handleImportJson = async () => {
+    if (!jsonInput.trim()) return;
+
+    try {
+      setImporting(true);
+      const parsedData = JSON.parse(jsonInput);
+      
+      const dataToImport = Array.isArray(parsedData) ? parsedData : [parsedData];
+      
+      if (dataToImport.length === 0) {
+        alert("The JSON data is empty.");
+        setImporting(false);
+        return;
+      }
+
+      for (const dialogueData of dataToImport) {
+          await api.post(`/chapters/${chapterId}/dialogues`, dialogueData);
+      }
+      
+      await fetchDialogues();
+      
+      setJsonInput("");
+      setIsImportModalOpen(false);
+      alert("Import successful!");
+    } catch (error: any) {
+      console.error("Failed to import JSON", error);
+      const errorMessage = error.response?.data?.error || error.message || "Invalid JSON or server error";
+      alert("Failed to import: " + errorMessage);
+    } finally {
+      setImporting(false);
+    }
   };
 
   const handleSaveSentence = async (e: React.FormEvent) => {
@@ -186,13 +224,22 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800 dark:text-white">Dialogues</h2>
-        <button
-          onClick={() => openDialogueModal()}
-          className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-sm"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          New Dialogue
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="flex items-center px-4 py-2 bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-zinc-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors shadow-sm font-medium"
+          >
+            <FileJson className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+            Import JSON
+          </button>
+          <button
+            onClick={() => openDialogueModal()}
+            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-sm"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            New Dialogue
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -359,6 +406,141 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
           ))}
         </div>
       )}
+
+      {/* Import Modal */}
+      <AnimatePresence>
+        {isImportModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-zinc-700">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <FileJson className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  Import Dialogues from JSON
+                </h3>
+                <button
+                  onClick={() => setIsImportModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto custom-scrollbar">
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Paste your JSON array below or upload a .json file. The JSON should be an array of objects with the following structure:
+                  <code className="block mt-2 p-3 bg-gray-50 dark:bg-zinc-900 rounded-lg text-xs font-mono text-gray-800 dark:text-gray-300 overflow-x-auto">
+                    {`[
+  {
+    "title": "Dialogue Title",
+    "description": "Description",
+    "sentences": [
+      {
+        "speaker": "A",
+        "chinese": "你好",
+        "pinyin": "nǐ hǎo",
+        "english": "Hello",
+        "order": 1
+      }
+    ]
+  }
+]`}
+                  </code>
+                </p>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Upload JSON File
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center px-4 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-600 transition-colors shadow-sm">
+                        <Upload className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
+                        <span className="text-sm text-gray-700 dark:text-gray-200">Choose File</span>
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              const file = e.target.files[0];
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                if (event.target?.result) {
+                                  setJsonInput(event.target.result as string);
+                                }
+                              };
+                              reader.readAsText(file);
+                              e.target.value = '';
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {jsonInput ? "Content loaded" : "No file chosen"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200 dark:border-zinc-700"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white dark:bg-zinc-800 text-gray-500">Or paste content directly</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      JSON Content
+                    </label>
+                    <textarea
+                      value={jsonInput}
+                      onChange={(e) => setJsonInput(e.target.value)}
+                      className="w-full h-64 px-4 py-3 bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:text-white font-mono text-sm resize-none"
+                      placeholder="Paste JSON array here..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50 flex justify-end gap-3">
+                <button
+                  onClick={() => setIsImportModalOpen(false)}
+                  className="px-5 py-2.5 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleImportJson}
+                  disabled={importing || !jsonInput.trim()}
+                  className={`
+                    px-6 py-2.5 rounded-xl font-semibold text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all flex items-center gap-2
+                    ${importing || !jsonInput.trim() ? 'bg-blue-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transform hover:-translate-y-0.5 active:translate-y-0'}
+                  `}
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Import Dialogues
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Dialogue Modal */}
       {isDialogueModalOpen && (
