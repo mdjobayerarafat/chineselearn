@@ -309,8 +309,51 @@ export default function AdminChapterDetail({ params }: AdminChapterDetailProps) 
               </button>
             </div>
           </div>
+          
+          {/* Tab Navigation */}
+          <div className="flex gap-4 mt-6 border-b border-gray-200 dark:border-zinc-700">
+            <button
+              onClick={() => setActiveTab('vocabulary')}
+              className={`pb-3 px-4 text-sm font-medium transition-colors relative ${
+                activeTab === 'vocabulary' 
+                  ? 'text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                Vocabulary
+              </div>
+              {activeTab === 'vocabulary' && (
+                <motion.div 
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400"
+                />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('dialogue')}
+              className={`pb-3 px-4 text-sm font-medium transition-colors relative ${
+                activeTab === 'dialogue' 
+                  ? 'text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Dialogues
+              </div>
+              {activeTab === 'dialogue' && (
+                <motion.div 
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400"
+                />
+              )}
+            </button>
+          </div>
         </motion.div>
 
+        {activeTab === 'vocabulary' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Form Section */}
           <motion.div 
@@ -542,6 +585,9 @@ export default function AdminChapterDetail({ params }: AdminChapterDetailProps) 
             )}
           </div>
         </div>
+        ) : (
+          <DialogueManager chapterId={id} />
+        )}
       </div>
       <AnimatePresence>
         {isImportModalOpen && (
