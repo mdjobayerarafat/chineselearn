@@ -20,6 +20,9 @@ services:
       args:
         NEXT_PUBLIC_API_URL: /api
         INTERNAL_API_URL: http://backend:8080/api
+    environment:
+      - INTERNAL_API_URL=http://backend:8080/api
+      - NEXT_PUBLIC_API_URL=/api
     container_name: chineselearn-frontend
     ports:
       - "3000:3000"
