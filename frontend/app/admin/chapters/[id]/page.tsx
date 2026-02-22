@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { Vocabulary } from "@/lib/types";
-import { ArrowLeft, Plus, Image as ImageIcon, Loader2, Edit, Save, X, Trash2, Upload, FileJson, Settings } from "lucide-react";
+import { ArrowLeft, Plus, Image as ImageIcon, Loader2, Edit, Save, X, Trash2, Upload, FileJson, Settings, BookOpen, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import DialogueManager from "./DialogueManager";
 
 interface AdminChapterDetailProps {
   params: Promise<{ id: string }>;
@@ -59,6 +60,8 @@ export default function AdminChapterDetail({ params }: AdminChapterDetailProps) 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [jsonInput, setJsonInput] = useState("");
   const [importing, setImporting] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<'vocabulary' | 'dialogue'>('vocabulary');
 
   useEffect(() => {
     const fetchData = async () => {

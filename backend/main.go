@@ -36,6 +36,29 @@ type Vocabulary struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type Dialogue struct {
+	ID          uint       `gorm:"primaryKey" json:"id"`
+	ChapterID   uint       `json:"chapter_id"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Sentences   []Sentence `json:"sentences,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+}
+
+type Sentence struct {
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	DialogueID uint      `json:"dialogue_id"`
+	Speaker    string    `json:"speaker"`
+	Chinese    string    `json:"chinese"`
+	Pinyin     string    `json:"pinyin"`
+	English    string    `json:"english"`
+	AudioURL   string    `json:"audio_url"`
+	Order      int       `json:"order"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
 type VocabularyBatchInput struct {
 	Chinese  string `json:"chinese"`
 	Pinyin   string `json:"pinyin"`
@@ -53,7 +76,7 @@ func main() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&Chapter{}, &Vocabulary{})
+	db.AutoMigrate(&Chapter{}, &Vocabulary{}, &Dialogue{}, &Sentence{})
 
 	r := gin.Default()
 
@@ -86,6 +109,15 @@ func main() {
 		api.POST("/chapters/:id/vocabularies/batch", batchCreateVocabularies)
 		api.PUT("/vocabularies/:id", updateVocabulary)
 		api.DELETE("/vocabularies/:id", deleteVocabulary)
+
+		// Dialogue Routes
+		api.GET("/chapters/:id/dialogues", getChapterDialogues)
+		api.POST("/chapters/:id/dialogues", createDialogue)
+		api.PUT("/dialogues/:id", updateDialogue)
+		api.DELETE("/dialogues/:id", deleteDialogue)
+		api.POST("/dialogues/:id/sentences", createSentence)
+		api.PUT("/sentences/:id", updateSentence)
+		api.DELETE("/sentences/:id", deleteSentence)
 	}
 
 	r.Run(":8080")
@@ -316,4 +348,135 @@ func batchCreateVocabularies(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, vocabularies)
+}
+
+func getChapterDialogues(c *gin.Context) {
+	var dialogues []Dialogue
+	if result := db.Preload("Sentences", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sentences.order ASC")
+	}).Where("chapter_id = ?", c.Param("id")).Find(&dialogues); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, dialogues)
+}
+
+func createDialogue(c *gin.Context) {
+	chapterIDStr := c.Param("id")
+	chapterID, err := strconv.ParseUint(chapterIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid chapter_id"})
+		return
+	}
+
+	var dialogue Dialogue
+	if err := c.ShouldBindJSON(&dialogue); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	dialogue.ChapterID = uint(chapterID)
+
+	if result := db.Create(&dialogue); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, dialogue)
+}
+
+func updateDialogue(c *gin.Context) {
+	var dialogue Dialogue
+	if err := db.First(&dialogue, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Dialogue not found"})
+		return
+	}
+
+	var input struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	dialogue.Title = input.Title
+	dialogue.Description = input.Description
+
+	if result := db.Save(&dialogue); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, dialogue)
+}
+
+func deleteDialogue(c *gin.Context) {
+	id := c.Param("id")
+	// Delete associated sentences first
+	if result := db.Where("dialogue_id = ?", id).Delete(&Sentence{}); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	if result := db.Delete(&Dialogue{}, id); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Dialogue deleted"})
+}
+
+func createSentence(c *gin.Context) {
+	dialogueIDStr := c.Param("id")
+	dialogueID, err := strconv.ParseUint(dialogueIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid dialogue_id"})
+		return
+	}
+
+	var sentence Sentence
+	if err := c.ShouldBindJSON(&sentence); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	sentence.DialogueID = uint(dialogueID)
+
+	if result := db.Create(&sentence); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, sentence)
+}
+
+func updateSentence(c *gin.Context) {
+	var sentence Sentence
+	if err := db.First(&sentence, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Sentence not found"})
+		return
+	}
+
+	var input Sentence
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	sentence.Speaker = input.Speaker
+	sentence.Chinese = input.Chinese
+	sentence.Pinyin = input.Pinyin
+	sentence.English = input.English
+	sentence.AudioURL = input.AudioURL
+	sentence.Order = input.Order
+
+	if result := db.Save(&sentence); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, sentence)
+}
+
+func deleteSentence(c *gin.Context) {
+	id := c.Param("id")
+	if result := db.Delete(&Sentence{}, id); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Sentence deleted"})
 }
