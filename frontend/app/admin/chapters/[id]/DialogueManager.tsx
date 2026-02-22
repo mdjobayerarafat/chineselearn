@@ -117,8 +117,16 @@ export default function DialogueManager({ chapterId }: DialogueManagerProps) {
         return;
       }
 
-      for (const dialogueData of dataToImport) {
-          await api.post(`/chapters/${chapterId}/dialogues`, dialogueData);
+      for (const item of dataToImport) {
+        // Remove ID if present to avoid conflicts and let backend generate new ID
+        const { id, ...dialogueData } = item;
+        
+        // Ensure sentences is an array if present
+        if (dialogueData.sentences && !Array.isArray(dialogueData.sentences)) {
+           dialogueData.sentences = [];
+        }
+        
+        await api.post(`/chapters/${chapterId}/dialogues`, dialogueData);
       }
       
       await fetchDialogues();

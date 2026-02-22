@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         destination: (process.env.INTERNAL_API_URL 
           ? `${process.env.INTERNAL_API_URL}/:path*` 
-          : 'http://backend:8080/api/:path*').replace('//api', '/api'), // Fix double slash
+          : 'http://localhost:8080/api/:path*').replace('//api', '/api'), // Fix double slash
       },
     ];
   },
