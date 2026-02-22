@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { Vocabulary } from "@/lib/types";
-import { ArrowLeft, Image as ImageIcon, Loader2, ChevronLeft, ChevronRight, LayoutGrid, SquareStack } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, Loader2, ChevronLeft, ChevronRight, LayoutGrid, SquareStack, ArrowRightLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ChapterDetailProps {
@@ -15,6 +15,7 @@ export default function ChapterDetail({ id }: ChapterDetailProps) {
   const [vocabularies, setVocabularies] = useState<Vocabulary[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'study' | 'list'>('study');
+  const [studyDirection, setStudyDirection] = useState<'zh-en' | 'en-zh'>('zh-en');
   
   // Study Mode State
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -86,7 +87,33 @@ export default function ChapterDetail({ id }: ChapterDetailProps) {
             </h1>
           </div>
           
-          <div className="flex items-center bg-white dark:bg-zinc-800 p-1.5 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm">
+          <div className="flex flex-wrap items-center gap-4">
+            {viewMode === 'study' && (
+              <div className="flex items-center bg-white dark:bg-zinc-800 p-1.5 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm">
+                <button
+                  onClick={() => setStudyDirection('zh-en')}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    studyDirection === 'zh-en' 
+                      ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  🇨🇳 → 🇬🇧
+                </button>
+                <button
+                  onClick={() => setStudyDirection('en-zh')}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    studyDirection === 'en-zh' 
+                      ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  🇬🇧 → 🇨🇳
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center bg-white dark:bg-zinc-800 p-1.5 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm">
             <button
               onClick={() => setViewMode('study')}
               className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
@@ -111,8 +138,9 @@ export default function ChapterDetail({ id }: ChapterDetailProps) {
             </button>
           </div>
         </div>
+      </div>
 
-        {loading ? (
+      {loading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
           </div>
@@ -169,40 +197,53 @@ export default function ChapterDetail({ id }: ChapterDetailProps) {
                   <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/10 dark:bg-blue-500/5 rounded-bl-[100px] -mr-10 -mt-10 pointer-events-none blur-xl" />
                   <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-tr-[80px] -ml-10 -mb-10 pointer-events-none blur-xl" />
                   
-                  <div className="flex-grow flex flex-col items-center justify-center w-full z-10 overflow-y-auto custom-scrollbar relative">
-                    {vocabularies[currentIndex].image_url && (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="w-full max-h-48 mb-8 relative flex-shrink-0 flex justify-center"
-                      >
-                        <img 
-                          src={vocabularies[currentIndex].image_url} 
-                          alt={vocabularies[currentIndex].chinese}
-                          className="h-full object-contain max-h-44 rounded-2xl drop-shadow-xl"
-                        />
-                      </motion.div>
-                    )}
-                    <div className="text-center">
-                      <motion.div 
-                        key={`char-${currentIndex}`}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-6xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 mb-4 select-none"
-                      >
-                        {vocabularies[currentIndex].chinese}
-                      </motion.div>
-                      <motion.div 
-                        key={`pinyin-${currentIndex}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-2xl sm:text-3xl font-medium text-blue-500 dark:text-blue-400 tracking-wide"
-                      >
-                        {vocabularies[currentIndex].pinyin}
-                      </motion.div>
+                  {studyDirection === 'zh-en' ? (
+                    <div className="flex-grow flex flex-col items-center justify-center w-full z-10 overflow-y-auto custom-scrollbar relative">
+                      {vocabularies[currentIndex].image_url && (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="w-full max-h-48 mb-8 relative flex-shrink-0 flex justify-center"
+                        >
+                          <img 
+                            src={vocabularies[currentIndex].image_url} 
+                            alt={vocabularies[currentIndex].chinese}
+                            className="h-full object-contain max-h-44 rounded-2xl drop-shadow-xl"
+                          />
+                        </motion.div>
+                      )}
+                      <div className="text-center">
+                        <motion.div 
+                          key={`char-${currentIndex}`}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-6xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 mb-4 select-none"
+                        >
+                          {vocabularies[currentIndex].chinese}
+                        </motion.div>
+                        <motion.div 
+                          key={`pinyin-${currentIndex}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.1 }}
+                          className="text-2xl sm:text-3xl font-medium text-blue-500 dark:text-blue-400 tracking-wide"
+                        >
+                          {vocabularies[currentIndex].pinyin}
+                        </motion.div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex-grow flex items-center justify-center text-center w-full overflow-y-auto z-10">
+                      <div className="space-y-4">
+                        <span className="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-sm font-semibold tracking-wide uppercase mb-2">
+                          Meaning
+                        </span>
+                        <div className="text-3xl sm:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight">
+                          {vocabularies[currentIndex].meaning || "No meaning available"}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <p className="text-gray-400 dark:text-gray-500 text-xs mt-8 flex-shrink-0 uppercase tracking-widest font-semibold animate-pulse">Click to reveal meaning</p>
                 </div>
                 
@@ -219,16 +260,53 @@ export default function ChapterDetail({ id }: ChapterDetailProps) {
                   <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-600" />
                   <div className="absolute bottom-0 right-0 w-40 h-40 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-tl-[100px] -mr-10 -mb-10 pointer-events-none blur-xl" />
                   
-                  <div className="flex-grow flex items-center justify-center text-center w-full overflow-y-auto z-10">
-                    <div className="space-y-4">
-                      <span className="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-sm font-semibold tracking-wide uppercase mb-2">
-                        Meaning
-                      </span>
-                      <div className="text-3xl sm:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight">
-                        {vocabularies[currentIndex].meaning || "No meaning available"}
+                  {studyDirection === 'zh-en' ? (
+                    <div className="flex-grow flex items-center justify-center text-center w-full overflow-y-auto z-10">
+                      <div className="space-y-4">
+                        <span className="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-sm font-semibold tracking-wide uppercase mb-2">
+                          Meaning
+                        </span>
+                        <div className="text-3xl sm:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight">
+                          {vocabularies[currentIndex].meaning || "No meaning available"}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex-grow flex flex-col items-center justify-center w-full z-10 overflow-y-auto custom-scrollbar relative">
+                      {vocabularies[currentIndex].image_url && (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="w-full max-h-48 mb-8 relative flex-shrink-0 flex justify-center"
+                        >
+                          <img 
+                            src={vocabularies[currentIndex].image_url} 
+                            alt={vocabularies[currentIndex].chinese}
+                            className="h-full object-contain max-h-44 rounded-2xl drop-shadow-xl"
+                          />
+                        </motion.div>
+                      )}
+                      <div className="text-center">
+                        <motion.div 
+                          key={`char-${currentIndex}`}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-6xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 mb-4 select-none"
+                        >
+                          {vocabularies[currentIndex].chinese}
+                        </motion.div>
+                        <motion.div 
+                          key={`pinyin-${currentIndex}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.1 }}
+                          className="text-2xl sm:text-3xl font-medium text-blue-500 dark:text-blue-400 tracking-wide"
+                        >
+                          {vocabularies[currentIndex].pinyin}
+                        </motion.div>
+                      </div>
+                    </div>
+                  )}
                   <p className="text-gray-400 dark:text-gray-500 text-xs mt-8 flex-shrink-0 uppercase tracking-widest font-semibold animate-pulse">Click to flip back</p>
                 </div>
               </motion.div>
